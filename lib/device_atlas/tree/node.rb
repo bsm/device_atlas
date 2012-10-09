@@ -1,8 +1,8 @@
 class DeviceAtlas::Tree::Node < Hash
   include DeviceAtlas::Helpers
 
-  # @attr_reader [Hash<Integer, Object>] values values by property ID
-  attr_reader :values
+  # @attr_reader [Hash<Integer, Integer>] pairs pairs of property/values ID
+  attr_reader :pairs
 
   # @attr_reader [Array<Regexp>] expressions expressions to be substituted
   attr_reader :expressions
@@ -10,10 +10,10 @@ class DeviceAtlas::Tree::Node < Hash
   # Constructor
   # @param [DeviceAtlas::Tree] tree parent tree reference
   # @param [Hash] attributes node attributes
-  def initialize(tree, attributes)    
-    @expressions  = [] 
+  def initialize(tree, attributes)
+    @expressions  = []
     @expressions |= tree.expressions.values_at(*attributes["r"]) if attributes.key?("r")
-    @values       = parse_values(tree, attributes["d"])
+    @pairs        = parse_pairs(tree, attributes["d"])
 
     attributes["c"].map do |char, attrs|
       self[char] = self.class.new(tree, attrs)
@@ -22,21 +22,19 @@ class DeviceAtlas::Tree::Node < Hash
 
   protected
 
-    # @param [Hash] values the values accumulator
+    # @param [Hash] pairs the pairs accumulator
     # @param [String] string the remaining user agent string
-    def populate!(values, string)
-      values.update(self.values)
+    def populate!(pairs, string)
+      pairs.update(self.pairs)
       return if empty?
 
       expressions.each do |regexp|
         string.gsub! regexp, ""
       end
 
-      buffer, child = "", nil
-      until string.empty?
-        buffer += string.slice!(0)
-        child   = self[buffer]
-        return child.send(:populate!, values, string) if child
+      (1..string.size).each do |pos|
+        child = self[string[0,pos]]
+        return child.send(:populate!, pairs, string[pos..-1]) if child
       end
     end
 

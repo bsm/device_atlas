@@ -6,7 +6,7 @@ describe DeviceAtlas::Tree::Node do
 
   it { should be_instance_of(described_class) }
   it { should be_a(Hash) }
-  its(:values) { should == {109=>false, 108=>false, 105=>false, 95=>true, 60=>false, 7=>true} }
-  its(:keys)   { should =~ ["D", "P"] }
+  its(:keys)  { should =~ ["D", "P"] }
+  its(:pairs) { should == {109=>0, 108=>0, 105=>0, 95=>1, 60=>0, 7=>1} }
 
 end

@@ -1,7 +1,11 @@
 class DeviceAtlas::Tree
+  include DeviceAtlas::Helpers
 
-  # @attr_reader [Array<DeviceAtlas::Property>] properties all properties
+  # @attr_reader [Array<String>] properties all properties
   attr_reader :properties
+
+  # @attr_reader [Array] property values
+  attr_reader :values
 
   # @attr_reader [Array<Regexp>] expressions
   attr_reader :expressions
@@ -15,7 +19,8 @@ class DeviceAtlas::Tree
 	# Constructor, optimises the tree for fast access
 	# @param [Hash] the parsed lookup tree
 	def initialize(tree)
-    @properties  = tree["p"].each_with_index.map {|name, index| DeviceAtlas::Property.new(index, name) }    
+    @properties  = tree["p"].map {|name| underscore(name.sub(/^(\w)/, '')) }
+    @values      = normalize tree["v"], [1, "True", "true"] => true, [0, "False", "false"] => false
     @expressions = Array(tree['r'][DeviceAtlas::API_ID]).map {|s| /#{s}/ }
 
 		@uar  = DeviceAtlas::UAR.new(self, tree["uar"])
@@ -23,27 +28,47 @@ class DeviceAtlas::Tree
 	end
 
   # @param [String] ua the user agent string
-  # @return [Hash<Integer,Object>] property values
+  # @return [Hash<Integer,Integer>] pairs of property/value IDs
   def seek_ids(ua)
-    values = {}
-    root.send(:populate!, values, ua.to_s.dup)
-    values
+    pairs = {}
+    root.send(:populate!, pairs, ua.to_s.dup)
+    pairs
   end
 
   # @param [String] ua the user agent string
-  # @return [Hash<DeviceAtlas::Property>,Object>] property values
+  # @return [Hash<String,Object>] pairs of property/value tuples
   def seek(ua)
-    pairs = seek_ids(ua)
-    Hash[properties.values_at(*pairs.keys).zip(pairs.values)]
+    convert seek_ids(ua)
   end
 
   # @param [String] ua the user agent string
-  # @return [Hash<DeviceAtlas::Property>,Object>] property values
-  def match(ua)
-    base = seek_ids(ua)
-    base.update uar.seek_ids(ua, base)
-    Hash[properties.values_at(*base.keys).merge(base.values)]
+  # @return [Hash<Integer,Integer>] full property values, including UAR properties
+  def match_ids(ua)
+    pairs = seek_ids(ua)
+    uar.update(pairs, ua)
   end
+
+  # @param [String] ua the user agent string
+  # @return [Hash<String,Object>] full property values, including UAR properties
+  def match(ua)
+    convert match_ids(ua)
+  end
+
+  private
+
+    # Converts pairs of property/value IDs to property/value tuples
+    def convert(pairs)
+      Hash[properties.values_at(*pairs.keys).zip(values.values_at(*pairs.values))]
+    end
+
+    def normalize(values, replacements)
+      replacements.each do |old, new|
+        old.each do |value|
+          values[values.index(value)] = new while values.include?(value)
+        end
+      end
+      values
+    end
 
 end
 
