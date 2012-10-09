@@ -16,16 +16,16 @@ class DeviceAtlas::Tree
   # @attr_reader [DeviceAtlas::Tree::Node] root the root node
   attr_reader :root
 
-	# Constructor, optimises the tree for fast access
-	# @param [Hash] the parsed lookup tree
-	def initialize(tree)
-    @properties  = tree["p"].map {|name| underscore(name.sub(/^(\w)/, '')) }
+  # Constructor, optimises the tree for fast access
+  # @param [Hash] the parsed lookup tree
+  def initialize(tree)
+    @properties  = tree["p"].map {|name| underscore(name.sub(/^(\w)/, '')).sub(/^is_/, '') }
     @values      = normalize tree["v"], [1, "True", "true"] => true, [0, "False", "false"] => false
     @expressions = Array(tree['r'][DeviceAtlas::API_ID]).map {|s| /#{s}/ }
 
-		@uar  = DeviceAtlas::UAR.new(self, tree["uar"])
+    @uar  = DeviceAtlas::UAR.new(self, tree["uar"])
     @root = DeviceAtlas::Tree::Node.new(self, tree["t"])
-	end
+  end
 
   # @param [String] ua the user agent string
   # @return [Hash<Integer,Integer>] pairs of property/value IDs

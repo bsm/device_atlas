@@ -3,14 +3,14 @@ class DeviceAtlas::UAR::RuleSet
   # @attr_reader [Array] specific rules
   attr_reader :rules
 
-	# Constructor
+  # Constructor
   # @param [DeviceAtlas::UAR] uar the parent UAR
-	# @param [Hash] attributes the rule set attributes
-	def initialize(uar, attributes)
-		@rules  = parse_rules(uar, attributes["r"])
+  # @param [Hash] attributes the rule set attributes
+  def initialize(uar, attributes)
+    @rules  = parse_rules(uar, attributes["r"])
     @refine = uar.expressions[attributes["f"].to_i] if attributes["f"]
     @search = uar.expressions[attributes["s"].to_i] if attributes["s"]
-	end
+  end
 
   # @param [String] ua the user agent
   # @return [Boolean] true if set is applicable, used for filtering

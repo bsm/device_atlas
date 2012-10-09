@@ -7,13 +7,13 @@ class DeviceAtlas::UAR::RuleGroup
   # @attr_reader [Hash<Integer,Integer>] required property/value IDs
   attr_reader :required
 
-	# Constructor
+  # Constructor
   # @param [DeviceAtlas::UAR] uar the parent UAR
-	# @param [Hash] attributes the rule group attributes
-	def initialize(uar, attributes)
-		@rule_sets = parse_rule_sets(uar, attributes["t"])
+  # @param [Hash] attributes the rule group attributes
+  def initialize(uar, attributes)
+    @rule_sets = parse_rule_sets(uar, attributes["t"])
     @required  = parse_pairs(uar.tree, attributes["p"])
-	end
+  end
 
   # @param [Hash] pairs pairs of property/value IDs
   def matches?(pairs)

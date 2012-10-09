@@ -2,12 +2,17 @@ require 'spec_helper'
 
 describe DeviceAtlas::Tree do
 
-	subject { SAMPLE_TREE }
+  subject { SAMPLE_TREE }
   its(:properties)  { should have(126).items }
   its(:values)      { should have(16637).items }
   its(:expressions) { should have(10).items }
   its(:uar) { should be_instance_of(DeviceAtlas::UAR) }
   its(:root) { should be_instance_of(DeviceAtlas::Tree::Node) }
+
+  it 'should normalize properties' do
+    subject.properties[104].should == "e_reader"
+    subject.properties.uniq.should have(126).items
+  end
 
   it 'should normalize values' do
     subject.values[0].should be(false)
